@@ -42,10 +42,39 @@
 (define get-article (lambda (multistream-path base-path line-record)
   ;extract article from the decompressed stream
   ;(decompressed stream contains 100 articles
-  (define extract-article (lambda (placeholder)
+  ;a little naive
+  (define extract-article (lambda (stream-text article-id)
     ;look for <page> with matching page id, and return it
     ;something else can handle only displaying the <revision>, because outside the <revision> there is important info like last edited date
-    (display "placeholder")
+    ;<page>
+    ;<title></title>
+    ;<ns></ns>
+    ;<id></id>
+    (define extract-article-tail (lambda (port current-page correct-page)
+      (let* (
+        [line (strip-leading-whitespace (get-line port))]
+      )
+        (cond
+          [
+            (string=? line "<page>")
+            (extract-article-tail port "<page>" #f) ;#f or correct-page, doesn't matter
+          ]
+          [
+            (string=? line (string-append "<id>" (number->string article-id) "</id>"))
+            (extract-article-tail port (string-append current-page line) #t)
+          ]
+          [
+            (and (string=? line "</page>") correct-page)
+            (string-append current-page "</page>")
+          ]
+          [
+            else
+            (extract-article-tail port (string-append current-page line "\n") correct-page)
+          ]
+        )
+      )
+    ))
+    (extract-article-tail (open-string-input-port stream-text) "" #f)
   ))
   ;get size of stream (next offset - offset)
   (define find-stream-size (lambda (byte-seek)
@@ -68,13 +97,9 @@
   )
     (set-port-position! multistream-port line-byte-seek) ;is there a better way? :(
     ;get the slice of bytes from the offset/byte-seek to the offset + stream size
-    (display (decompress (get-bytevector-n multistream-port (find-stream-size line-byte-seek))))
-    ;pass those bytes into decompress func
-    ;
-    ;extract the article from the decompressed text
-    ;
+    ;then pass those bytes into decompress func
+    ;finally extract the article from the decompressed text
+    (extract-article (decompress (get-bytevector-n multistream-port (find-stream-size line-byte-seek))) (index-line-article-id line-record))
   )
 ))
-
-(get-article "enwiktionary-latest-pages-articles-multistream.xml.bz2" "./enwiktionary" (car (index-search "./enwiktionary" "trees" #f)))
 

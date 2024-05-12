@@ -62,8 +62,22 @@
   )
 ))
 
-#|
+;remove all whitespace
+(define strip-leading-whitespace (lambda (to-strip)
+  (define strip-leading-whitespace-tail (lambda (chars stripped all-whitespace)
+    (if (= (length chars) 0)
+      stripped
+      (if (and all-whitespace (char=? (car chars) #\space))
+        (strip-leading-whitespace-tail (cdr chars) stripped #t)
+        (strip-leading-whitespace-tail (cdr chars) (string-append stripped (string (car chars))) #f)
+      )
+    )
+  ))
+  (strip-leading-whitespace-tail (string->list to-strip) "" #t)
+))
+
 ;does not lowercase
+#|
 (define found-in-string (lambda (find-in query)
   (define found-in-string-tail (lambda (index)
     (if (< (string-length find-in) (+ index (string-length query)))
