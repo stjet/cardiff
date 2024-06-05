@@ -14,7 +14,7 @@
   (string-append (number->string (index-line-byte-seek line-record)) ":" (number->string (index-line-article-id line-record)) ":" (index-line-title line-record))
 ))
 
-;todo: lowercase
+;don't mess with casing because eg, "Trees" and "trees" are different articles
 ;if return-all-matches is #f, return list with one item (exact match) or 0 (not found)
 (define index-search (lambda (base-path query return-all-matches)
   (define index-search-tail (lambda (file matches)

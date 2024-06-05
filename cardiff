@@ -1,0 +1,3 @@
+#!/bin/bash
+rpath=`which cardiff`
+petite --script "$rpath".scm $*

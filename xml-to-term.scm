@@ -90,11 +90,16 @@
   (parse-wiki-xml-tail (open-string-input-port raw-xml) '() #f #f)
 ))
 
-(define get-value-from-key (lambda (pairs key)
+
+(define substring-try (lambda (str start end)
+  (substring str start (if (< (string-length str) end) (string-length str) end))
+))
+
+(define get-value-from-key (lambda (pairs key starts)
   (define get-value-from-key-tail (lambda (pairs-m)
     (if (= (length pairs-m) 0)
       #f ;not found
-      (if (string=? key (car (car pairs-m)))
+      (if (or (and (string=? key (car (car pairs-m))) (not starts)) (and (string=? key (substring-try (car (car pairs-m)) 0 (string-length key))) starts))
         (cdr (car pairs-m))
         (get-value-from-key-tail (cdr pairs-m))
       )
@@ -106,15 +111,17 @@
 ;there is more information that we do NOT care about
 (define-record-type last-edit (fields timestamp username comment))
 (define extract-last-edit (lambda (xml-tree)
-  (let ([revision (get-value-from-key (cdr (car xml-tree)) "revision")])
-    (make-last-edit (get-value-from-key revision "timestamp") (get-value-from-key (get-value-from-key revision "contributor") "username") (get-value-from-key revision "comment"))
+  (let ([revision (get-value-from-key (cdr (car xml-tree)) "revision" #f)])
+    (make-last-edit (get-value-from-key revision "timestamp" #f) (get-value-from-key (get-value-from-key revision "contributor" #f) "username" #f) (get-value-from-key revision "comment" #f))
   )
 ))
 
 (define extract-text (lambda (xml-tree)
-  (display "placeholder")
+  (get-value-from-key (get-value-from-key (cdr (car xml-tree)) "revision" #f) "text" #t)
 ))
 
-(define xml-to-html (lambda (xml-tree)
-  (display "placeholder")
+(define text-to-term (lambda (raw-xml)
+  ;
+  ;placeholder
+  raw-xml
 ))

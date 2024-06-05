@@ -20,7 +20,10 @@
       (join-by-char-tail (cdr string-list) (string-append current-string (car string-list) (string join-char)))
     )
   ))
-  (join-by-char-tail string-list "")
+  (if (= (length string-list) 0)
+    ""
+    (join-by-char-tail string-list "")
+  )
 ))
 
 (define starts-with (lambda (find-in query)
